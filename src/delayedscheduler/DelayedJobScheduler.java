@@ -12,24 +12,49 @@ public class DelayedJobScheduler {
     private final Map<Integer, ScheduledFuture<?>> jobMap = new ConcurrentHashMap<>();
 
     public int scheduleJob(String jobName, LocalDateTime dateTime, Runnable job) {
-        int jobId = jobCounter.getAndIncrement();
-        long delay = ChronoUnit.MILLIS.between(LocalDateTime.now(), dateTime);
-        ScheduledFuture<?> future = scheduler.schedule(() -> {
+        int jobId = getNextJobId();
+        long delay = getDelay(dateTime);
+        ScheduledFuture<?> future = scheduleTask(jobName, job, delay);
+        addJobToMap(jobId, future);
+        return jobId;
+    }
+
+    private int getNextJobId() {
+        return jobCounter.getAndIncrement();
+    }
+
+    private long getDelay(LocalDateTime dateTime) {
+        return ChronoUnit.MILLIS.between(LocalDateTime.now(), dateTime);
+    }
+
+    private ScheduledFuture<?> scheduleTask(String jobName, Runnable job, long delay) {
+        return scheduler.schedule(() -> {
             System.out.println(jobName + " started at " + LocalDateTime.now());
             job.run();
             System.out.println(jobName + " completed at " + LocalDateTime.now());
         }, delay, TimeUnit.MILLISECONDS);
+    }
+
+    private void addJobToMap(int jobId, ScheduledFuture<?> future) {
         jobMap.put(jobId, future);
-        return jobId;
     }
 
     public boolean cancelJob(int jobId) {
         ScheduledFuture<?> future = jobMap.get(jobId);
         if (future != null) {
-            return future.cancel(false);
+            if (future.cancel(false)) {
+                System.out.println("Job with id " + jobId + " has been successfully cancelled.");
+                return true;
+            } else {
+                System.out.println("Job with id " + jobId + " could not be cancelled as it has already started running.");
+                return false;
+            }
+        } else {
+            System.out.println("No job found with id " + jobId + ".");
+            return false;
         }
-        return false;
     }
+
 
     public void shutdown() {
         scheduler.shutdown();
