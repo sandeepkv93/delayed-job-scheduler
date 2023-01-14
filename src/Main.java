@@ -3,6 +3,7 @@ import delayedscheduler.DelayedJobScheduler;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println("Program Started at " + LocalDateTime.now());
         DelayedJobScheduler scheduler = new DelayedJobScheduler();
         LocalDateTime dateTime1 = LocalDateTime.now().plusSeconds(5);
         int jobId1 = scheduler.scheduleJob("Job 1", dateTime1, () -> System.out.println("Running job 1"));
