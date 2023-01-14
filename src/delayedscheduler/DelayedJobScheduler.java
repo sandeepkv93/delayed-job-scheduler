@@ -7,9 +7,15 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DelayedJobScheduler {
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
-    private final AtomicInteger jobCounter = new AtomicInteger();
-    private final Map<Integer, ScheduledFuture<?>> jobMap = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler;
+    private final AtomicInteger jobCounter;
+    private final Map<Integer, ScheduledFuture<?>> jobMap;
+
+    public DelayedJobScheduler() {
+        scheduler = Executors.newScheduledThreadPool(4);
+        jobCounter = new AtomicInteger();
+        jobMap = new ConcurrentHashMap<>();
+    }
 
     public int scheduleJob(String jobName, LocalDateTime dateTime, Runnable job) {
         int jobId = getNextJobId();
